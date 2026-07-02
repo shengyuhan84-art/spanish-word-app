@@ -4,10 +4,1450 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>极简背单词</title>
-    <link rel="stylesheet" href="./styles.css" />
+    <style>
+:root {
+  --yellow: #ffdd3d;
+  --yellow-soft: #fff4a8;
+  --ink: #101010;
+  --paper: #fffdf5;
+  --green: #44e18a;
+  --red: #ff6b6b;
+  --blue: #7bc4ff;
+  --muted: #777;
+  --line: 3px solid var(--ink);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--ink);
+  font-family: ui-rounded, "Arial Rounded MT Bold", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  background-color: var(--yellow);
+  background-image: radial-gradient(rgba(16, 16, 16, 0.28) 1.1px, transparent 1.1px);
+  background-size: 16px 16px;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.app-shell {
+  min-height: 100vh;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 14px 14px 92px;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: -14px -14px 14px;
+  padding: 10px 14px;
+  border-bottom: var(--line);
+  background: var(--yellow);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 950;
+  letter-spacing: 0;
+}
+
+.brand-icon,
+.section-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: var(--line);
+  border-radius: 8px;
+  background: #ff765e;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.score-row {
+  display: flex;
+  gap: 8px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 30px;
+  padding: 4px 10px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: var(--paper);
+  font-size: 13px;
+  font-weight: 900;
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+.hero-card,
+.panel,
+.word-card,
+.achievement,
+.post-card {
+  border: var(--line);
+  border-radius: 22px;
+  background: var(--paper);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+.hero-card {
+  padding: 22px 18px;
+  margin-bottom: 20px;
+}
+
+.compact-hero {
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 18px;
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.study-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.study-summary strong {
+  display: inline-block;
+  margin-right: 8px;
+  font-size: 28px;
+  font-weight: 1000;
+  line-height: 1;
+}
+
+.study-summary small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.mini-label {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 950;
+}
+
+.target-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.target-control select {
+  min-width: 58px;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  background: #fff;
+  padding: 7px 8px;
+  font-weight: 950;
+}
+
+.compact-progress {
+  height: 12px;
+  margin: 10px 0;
+}
+
+.compact-status {
+  margin: 0;
+  text-transform: none;
+}
+
+.compact-status .mode-switch {
+  flex: 0 0 144px;
+}
+
+.status-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+  font-size: 11px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.mode-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 5px;
+  border: 2px solid #d7d1c5;
+  border-radius: 12px;
+  background: #f5f1e9;
+}
+
+.mode-switch button {
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.mode-switch .active {
+  color: #fff;
+  background: var(--ink);
+}
+
+.big-number {
+  margin: 8px 0 4px;
+  text-align: center;
+  font-size: clamp(56px, 17vw, 86px);
+  line-height: 0.95;
+  font-weight: 1000;
+}
+
+.sub-label {
+  text-align: center;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: 1.5px;
+}
+
+.progress-block {
+  margin: 24px 0 18px;
+}
+
+.progress-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 950;
+  margin-bottom: 6px;
+}
+
+.progress {
+  height: 18px;
+  overflow: hidden;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: #eee;
+}
+
+.progress span {
+  display: block;
+  height: 100%;
+  border-right: 2px solid var(--ink);
+  background: linear-gradient(90deg, var(--green), #b8ff64);
+}
+
+.hero-actions {
+  display: grid;
+  grid-template-columns: 1fr 58px;
+  gap: 12px;
+}
+
+.primary-btn,
+.icon-btn,
+.small-btn,
+.danger-btn,
+.ghost-btn {
+  border: var(--line);
+  border-radius: 14px;
+  color: var(--ink);
+  font-weight: 950;
+  box-shadow: 3px 3px 0 var(--ink);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.primary-btn:active,
+.icon-btn:active,
+.small-btn:active,
+.danger-btn:active,
+.ghost-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+.primary-btn {
+  min-height: 58px;
+  background: var(--green);
+  font-size: 20px;
+}
+
+.icon-btn {
+  min-height: 58px;
+  background: #ffd731;
+  font-size: 24px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 22px 0 12px;
+  font-size: 24px;
+  font-weight: 1000;
+}
+
+.section-icon {
+  width: 38px;
+  height: 38px;
+  background: #ff7fb2;
+}
+
+.panel {
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.form-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.field label {
+  display: block;
+  margin: 0 0 6px 2px;
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  border: 2px solid var(--ink);
+  border-radius: 13px;
+  background: #fff;
+  padding: 12px 13px;
+  outline: none;
+  box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.08);
+}
+
+.field textarea {
+  min-height: 78px;
+  resize: vertical;
+}
+
+.field .bulk-area {
+  min-height: 150px;
+  line-height: 1.55;
+}
+
+.import-hint {
+  margin: -2px 2px 2px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+  line-height: 1.5;
+}
+
+.form-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.small-btn {
+  min-height: 44px;
+  background: var(--green);
+}
+
+.ghost-btn {
+  min-height: 44px;
+  background: #fff;
+}
+
+.danger-btn {
+  min-height: 40px;
+  background: var(--red);
+}
+
+.file-label {
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  border: var(--line);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 3px 3px 0 var(--ink);
+  font-weight: 950;
+  text-align: center;
+  cursor: pointer;
+}
+
+.file-label input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.word-list {
+  display: grid;
+  gap: 12px;
+}
+
+.word-card {
+  padding: 14px;
+}
+
+.word-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.word-es {
+  font-size: 20px;
+  font-weight: 1000;
+}
+
+.word-cn {
+  color: #303030;
+  font-weight: 800;
+}
+
+.word-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.word-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.word-actions button {
+  flex: 1;
+}
+
+.learn-card {
+  min-height: 0;
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  text-align: center;
+}
+
+.card-emoji {
+  font-size: 42px;
+  filter: drop-shadow(3px 4px 0 rgba(0, 0, 0, 0.18));
+}
+
+.prompt {
+  font-size: clamp(30px, 10vw, 46px);
+  font-weight: 1000;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+
+.answer {
+  padding: 14px;
+  border: 2px dashed var(--ink);
+  border-radius: 16px;
+  background: var(--yellow-soft);
+  font-size: 22px;
+  font-weight: 950;
+}
+
+.answer-status {
+  justify-self: center;
+  padding: 7px 13px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  box-shadow: 2px 2px 0 var(--ink);
+  font-size: 13px;
+  font-weight: 1000;
+}
+
+.answer-status.ok {
+  background: var(--green);
+}
+
+.answer-status.miss {
+  background: #ffd731;
+}
+
+.answer-card {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border: var(--line);
+  border-radius: 18px;
+  background: var(--yellow-soft);
+  box-shadow: 3px 3px 0 var(--ink);
+  text-align: left;
+}
+
+.answer-card span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.answer-card strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: clamp(22px, 7vw, 34px);
+  line-height: 1.15;
+  font-weight: 1000;
+  overflow-wrap: anywhere;
+}
+
+.answer-card p {
+  margin: 0;
+  line-height: 1.55;
+  font-weight: 850;
+}
+
+.typing-area {
+  display: grid;
+  gap: 10px;
+}
+
+.type-input {
+  width: 100%;
+  border: var(--line);
+  border-radius: 15px;
+  background: #fff;
+  padding: 12px;
+  text-align: center;
+  font-size: 20px;
+  font-weight: 950;
+  outline: none;
+}
+
+.keyboard {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 6px;
+}
+
+.key {
+  min-height: 38px;
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  background: #fff;
+  font-weight: 950;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.review-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.empty {
+  padding: 28px 12px;
+  color: var(--muted);
+  text-align: center;
+  font-weight: 900;
+}
+
+.book-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 12px;
+  border: var(--line);
+  border-radius: 16px;
+  background: var(--paper);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.book-main {
+  min-width: 0;
+}
+
+.book-main strong,
+.book-main span,
+.book-main small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.book-main strong {
+  font-size: 18px;
+  font-weight: 1000;
+}
+
+.book-main span {
+  margin-top: 3px;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.book-main small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.book-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.mini-btn,
+.mini-danger {
+  min-width: 42px;
+  min-height: 36px;
+  border: 2px solid var(--ink);
+  border-radius: 11px;
+  box-shadow: 2px 2px 0 var(--ink);
+  font-weight: 950;
+}
+
+.mini-btn {
+  background: #fff;
+}
+
+.mini-danger {
+  background: var(--red);
+}
+
+.achievements {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.achievement {
+  min-height: 118px;
+  padding: 14px 10px;
+  text-align: center;
+  background: #fff8b8;
+}
+
+.achievement .icon {
+  font-size: 30px;
+}
+
+.achievement strong {
+  display: block;
+  margin-top: 6px;
+}
+
+.achievement span {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.post-card {
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.post-body {
+  padding: 16px;
+}
+
+.post-title {
+  font-size: 16px;
+  font-weight: 950;
+  line-height: 1.5;
+}
+
+.post-visual {
+  display: grid;
+  place-items: center;
+  height: 160px;
+  margin-top: 14px;
+  border: 2px solid var(--ink);
+  border-radius: 14px;
+  background: linear-gradient(135deg, #fff1a4, #ff8f70 48%, #6ed8ff);
+  font-size: 70px;
+}
+
+.tabbar {
+  position: fixed;
+  left: 50%;
+  bottom: 14px;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  width: min(492px, calc(100vw - 24px));
+  padding: 8px;
+  transform: translateX(-50%);
+  border: var(--line);
+  border-radius: 20px;
+  background: var(--paper);
+  box-shadow: 4px 4px 0 var(--ink);
+}
+
+.tabbar button {
+  display: grid;
+  place-items: center;
+  gap: 3px;
+  min-height: 52px;
+  border: 0;
+  border-radius: 13px;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.tabbar .active {
+  background: var(--ink);
+  color: #fff;
+}
+
+.tabbar .tab-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 88px;
+  z-index: 30;
+  width: min(440px, calc(100vw - 30px));
+  padding: 12px 14px;
+  transform: translateX(-50%);
+  border: var(--line);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 4px 4px 0 var(--ink);
+  text-align: center;
+  font-weight: 950;
+}
+
+.hidden {
+  display: none !important;
+}
+
+@media (min-width: 760px) {
+  .app-shell {
+    max-width: 960px;
+  }
+
+  .desktop-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    align-items: start;
+  }
+
+  .achievements {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+    </style>
   </head>
   <body>
     <div id="app"></div>
-    <script src="./app.js" charset="UTF-8"></script>
+    <script>
+const STORAGE_KEY = "spanish_word_garden_v1";
+const REVIEW_STEPS = [1, 2, 4, 7, 15, 30];
+const SPECIAL_KEYS = ["á", "é", "í", "ó", "ú", "ü", "ñ", "¿", "¡"];
+
+const todayKey = () => new Date().toISOString().slice(0, 10);
+const addDays = (dateKey, days) => {
+  const date = new Date(`${dateKey}T00:00:00`);
+  date.setDate(date.getDate() + days);
+  return date.toISOString().slice(0, 10);
+};
+
+const seedWords = [
+  { es: "tomate", cn: "番茄", note: "el tomate" },
+  { es: "girasol", cn: "向日葵", note: "el girasol" },
+  { es: "fresa", cn: "草莓", note: "la fresa" },
+];
+
+const freshWord = (word) => ({
+  id: globalThis.crypto?.randomUUID ? globalThis.crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
+  es: word.es.trim(),
+  cn: word.cn.trim(),
+  note: (word.note || "").trim(),
+  createdAt: todayKey(),
+  due: todayKey(),
+  stage: 0,
+  learnedToday: 0,
+  lastStudied: "",
+  correctCount: 0,
+  wrongCount: 0,
+});
+
+const defaultState = () => ({
+  words: seedWords.map(freshWord),
+  activeTab: "learn",
+  direction: "es-cn",
+  dailyTarget: 10,
+  currentId: "",
+  showAnswer: false,
+  pendingAnswer: null,
+  typed: "",
+  editingId: "",
+  form: { es: "", cn: "", note: "" },
+  bulkText: "",
+  checkins: {},
+  toast: "",
+});
+
+let state = loadState();
+let toastTimer = null;
+
+function loadState() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if (saved && Array.isArray(saved.words)) {
+      return { ...defaultState(), ...saved, toast: "", activeTab: "learn", showAnswer: false, pendingAnswer: null, typed: "" };
+    }
+  } catch (error) {
+    console.warn(error);
+  }
+  return defaultState();
+}
+
+function saveState() {
+  const { toast, showAnswer, pendingAnswer, typed, activeTab, ...saved } = state;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+}
+
+function showToast(message) {
+  state.toast = message;
+  render();
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    state.toast = "";
+    render();
+  }, 1800);
+}
+
+function dueWords() {
+  return plannedWords().filter((word) => !isDoneToday(word));
+}
+
+function todaysDoneWords() {
+  return plannedWords().filter(isDoneToday);
+}
+
+function repsToday(word) {
+  return word.lastStudied === todayKey() ? word.learnedToday : 0;
+}
+
+function isDoneToday(word) {
+  return word.lastStudied === todayKey() && word.learnedToday >= 3;
+}
+
+function plannedWords() {
+  const today = todayKey();
+  const target = Math.max(1, Number(state.dailyTarget) || 10);
+  return state.words.filter((word) => word.lastStudied === today || word.due <= today).slice(0, target);
+}
+
+function currentWord() {
+  const due = dueWords();
+  if (!due.length) return null;
+  return due.find((word) => word.id === state.currentId) || due[0];
+}
+
+function todayProgress() {
+  const done = todaysDoneWords().length;
+  const total = Math.max(plannedWords().length, 1);
+  return Math.round((done / total) * 100);
+}
+
+function switchTab(tab) {
+  state.activeTab = tab;
+  state.showAnswer = false;
+  state.pendingAnswer = null;
+  state.typed = "";
+  render();
+}
+
+function updateForm(field, value) {
+  state.form[field] = value;
+}
+
+function resetForm() {
+  state.form = { es: "", cn: "", note: "" };
+  state.editingId = "";
+}
+
+function submitWord() {
+  const es = state.form.es.trim();
+  const cn = state.form.cn.trim();
+  if (!es || !cn) {
+    showToast("西班牙语和中文都要填");
+    return;
+  }
+
+  if (state.editingId) {
+    state.words = state.words.map((word) =>
+      word.id === state.editingId ? { ...word, es, cn, note: state.form.note.trim() } : word
+    );
+    showToast("单词已更新");
+  } else {
+    state.words.unshift(freshWord({ es, cn, note: state.form.note }));
+    showToast("种下一颗新单词");
+  }
+
+  resetForm();
+  saveState();
+  render();
+}
+
+function updateBulkImport(value) {
+  state.bulkText = value;
+}
+
+function parseImportText(text) {
+  return text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith("#"))
+    .map((line) => {
+      const cleaned = line.replace(/^\d+[.)、]\s*/, "");
+      const parts = cleaned.split(/\s*(?:\t|,|，|\||｜|;|；| - | — | = |：|:)\s*/).filter(Boolean);
+      if (parts.length >= 2) {
+        return {
+          es: parts[0],
+          cn: parts[1],
+          note: parts.slice(2).join(" / "),
+        };
+      }
+
+      const spaced = cleaned.match(/^(.+?)\s{2,}(.+)$/);
+      if (spaced) {
+        return { es: spaced[1], cn: spaced[2], note: "" };
+      }
+
+      return null;
+    })
+    .filter((word) => word && word.es && word.cn);
+}
+
+function importWordsFromText(text) {
+  const parsed = parseImportText(text);
+  if (!parsed.length) {
+    showToast("没有识别到单词");
+    return;
+  }
+
+  const existing = new Set(state.words.map((word) => `${normalize(word.es)}|${normalize(word.cn)}`));
+  const fresh = [];
+  parsed.forEach((word) => {
+    const key = `${normalize(word.es)}|${normalize(word.cn)}`;
+    if (!existing.has(key)) {
+      existing.add(key);
+      fresh.push(freshWord(word));
+    }
+  });
+
+  if (!fresh.length) {
+    showToast("这些单词已经导入过了");
+    return;
+  }
+
+  state.words = [...fresh, ...state.words];
+  state.bulkText = "";
+  saveState();
+  showToast(`成功导入 ${fresh.length} 个单词`);
+}
+
+function submitBulkImport() {
+  importWordsFromText(state.bulkText);
+}
+
+function importFromFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => importWordsFromText(String(reader.result || ""));
+  reader.onerror = () => showToast("文件读取失败");
+  reader.readAsText(file, "UTF-8");
+}
+
+function editWord(id) {
+  const word = state.words.find((item) => item.id === id);
+  if (!word) return;
+  state.form = { es: word.es, cn: word.cn, note: word.note || "" };
+  state.editingId = id;
+  state.activeTab = "add";
+  render();
+}
+
+function deleteWord(id) {
+  state.words = state.words.filter((word) => word.id !== id);
+  if (state.currentId === id) state.currentId = "";
+  saveState();
+  showToast("已删除");
+}
+
+function setDirection(direction) {
+  state.direction = direction;
+  state.showAnswer = false;
+  state.pendingAnswer = null;
+  state.typed = "";
+  saveState();
+  render();
+}
+
+function setDailyTarget(value) {
+  const target = Math.max(1, Math.min(100, Number(value) || 10));
+  state.dailyTarget = target;
+  state.currentId = "";
+  state.showAnswer = false;
+  state.pendingAnswer = null;
+  state.typed = "";
+  saveState();
+  render();
+}
+
+function insertSpecialKey(char) {
+  state.typed = `${state.typed}${char}`;
+  render();
+  const input = document.querySelector(".type-input");
+  if (input) input.focus();
+}
+
+function normalize(text) {
+  return text.trim().toLowerCase().replace(/[¿?¡!.,，。]/g, "");
+}
+
+function submitTypedAnswer() {
+  const word = currentWord();
+  if (!word) return;
+  if (!state.typed.trim()) {
+    showToast("先输入答案");
+    return;
+  }
+  const ok = normalize(state.typed) === normalize(word.es);
+  revealAnswer(ok);
+}
+
+function revealAnswer(isCorrect) {
+  const word = currentWord();
+  if (!word) return;
+  state.pendingAnswer = { wordId: word.id, isCorrect };
+  state.showAnswer = true;
+  render();
+}
+
+function continueAfterAnswer() {
+  if (!state.pendingAnswer) return;
+  state.currentId = state.pendingAnswer.wordId;
+  const isCorrect = state.pendingAnswer.isCorrect;
+  state.pendingAnswer = null;
+  finishRound(isCorrect);
+}
+
+function finishRound(isCorrect) {
+  const word = currentWord();
+  if (!word) return;
+  const today = todayKey();
+  const nextCount = repsToday(word) + (isCorrect ? 1 : 0);
+  const completed = nextCount >= 3;
+  const nextStage = isCorrect && completed ? Math.min(word.stage + 1, REVIEW_STEPS.length - 1) : Math.max(word.stage - 1, 0);
+  const nextDue = completed ? addDays(today, REVIEW_STEPS[nextStage]) : today;
+
+  state.words = state.words.map((item) => {
+    if (item.id !== word.id) return item;
+    return {
+      ...item,
+      learnedToday: nextCount,
+      lastStudied: today,
+      stage: nextStage,
+      due: nextDue,
+      correctCount: item.correctCount + (isCorrect ? 1 : 0),
+      wrongCount: item.wrongCount + (isCorrect ? 0 : 1),
+    };
+  });
+
+  state.currentId = nextWordIdAfter(word.id);
+  state.showAnswer = false;
+  state.pendingAnswer = null;
+  state.typed = "";
+  saveState();
+
+  if (completed) {
+    showToast("这个单词今天完成 3 遍");
+  } else {
+    showToast(isCorrect ? "答对了，再来一遍" : "没关系，今天继续练");
+  }
+}
+
+function nextWordIdAfter(previousId) {
+  const plan = plannedWords();
+  const remainingIds = new Set(dueWords().map((word) => word.id));
+  if (!remainingIds.size) return "";
+
+  const start = Math.max(0, plan.findIndex((word) => word.id === previousId));
+  for (let offset = 1; offset <= plan.length; offset += 1) {
+    const candidate = plan[(start + offset) % plan.length];
+    if (candidate && remainingIds.has(candidate.id)) return candidate.id;
+  }
+
+  return dueWords()[0]?.id || "";
+}
+
+function checkIn() {
+  const today = todayKey();
+  if (!state.words.length) {
+    showToast("先录入单词再打卡");
+    return;
+  }
+  if (dueWords().length) {
+    showToast("先完成今天背诵再打卡");
+    return;
+  }
+  state.checkins[today] = true;
+  saveState();
+  showToast("今日打卡完成");
+}
+
+function streakCount() {
+  let count = 0;
+  let cursor = todayKey();
+  while (state.checkins[cursor]) {
+    count += 1;
+    cursor = addDays(cursor, -1);
+  }
+  return count;
+}
+
+function renderHero() {
+  const progress = todayProgress();
+  const due = dueWords().length;
+  const planned = plannedWords().length;
+  const done = todaysDoneWords().length;
+  const targets = [5, 10, 15, 20, 30, 50];
+  return `
+    <section class="hero-card compact-hero">
+      <div class="study-summary">
+        <div>
+          <span class="mini-label">今日任务</span>
+          <strong>${done}/${planned}</strong>
+          <small>剩余 ${due}</small>
+        </div>
+        <label class="target-control">
+          今天背
+          <select onchange="setDailyTarget(this.value)">
+            ${targets
+              .map((target) => `<option value="${target}" ${Number(state.dailyTarget) === target ? "selected" : ""}>${target}</option>`)
+              .join("")}
+          </select>
+        </label>
+      </div>
+      <div class="progress compact-progress"><span style="width:${progress}%"></span></div>
+      <div class="status-line compact-status">
+        <span>${due ? "READY" : "DONE"} · ${progress}%</span>
+        <div class="mode-switch" aria-label="背诵方向">
+          <button class="${state.direction === "es-cn" ? "active" : ""}" onclick="setDirection('es-cn')">西→中</button>
+          <button class="${state.direction === "cn-es" ? "active" : ""}" onclick="setDirection('cn-es')">中→西</button>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function renderLearn() {
+  const word = currentWord();
+  if (state.pendingAnswer) {
+    const answerWord = state.words.find((item) => item.id === state.pendingAnswer.wordId) || word;
+    if (answerWord) {
+      return `
+        ${renderHero()}
+        <section class="panel learn-card">
+          ${renderAnswerReveal(answerWord, state.pendingAnswer.isCorrect)}
+        </section>
+      `;
+    }
+  }
+
+  if (!word) {
+    return `
+      ${renderHero()}
+      <div class="section-title"><span class="section-icon">🏆</span> 今日完成</div>
+      <section class="panel learn-card">
+        <div class="card-emoji">🎉</div>
+        <div class="prompt">今天的学习完成啦</div>
+        <p class="word-cn">可以去打卡，明天会按记忆曲线安排复习。</p>
+        <button class="primary-btn" onclick="switchTab('checkin')">去打卡</button>
+      </section>
+    `;
+  }
+
+  const prompt = state.direction === "es-cn" ? word.es : word.cn;
+  const answer = state.direction === "es-cn" ? word.cn : word.es;
+  const typing = state.direction === "cn-es";
+  return `
+    ${renderHero()}
+    <section class="panel learn-card">
+      <div class="card-emoji">${typing ? "✍️" : "🍅"}</div>
+      <div class="prompt">${escapeHtml(prompt)}</div>
+      <div class="word-meta" style="justify-content:center">
+        <span class="pill">今日 ${repsToday(word)}/3</span>
+        <span class="pill">阶段 ${word.stage + 1}</span>
+      </div>
+      ${
+        typing
+          ? renderTyping(word)
+          : `
+            ${state.showAnswer ? `<div class="answer">${escapeHtml(answer)}</div>` : ""}
+            <div class="review-buttons">
+              <button class="ghost-btn" onclick="revealAnswer(false)">看答案</button>
+              <button class="small-btn" onclick="revealAnswer(true)">我记得</button>
+            </div>
+            <button class="danger-btn" onclick="revealAnswer(false)">还不熟</button>
+          `
+      }
+    </section>
+  `;
+}
+
+function renderAnswerReveal(word, isCorrect) {
+  return `
+    <div class="answer-status ${isCorrect ? "ok" : "miss"}">${isCorrect ? "答对了" : "正确答案"}</div>
+    <div class="answer-card">
+      <span>西班牙语</span>
+      <strong>${escapeHtml(word.es)}</strong>
+      <span>中文</span>
+      <strong>${escapeHtml(word.cn)}</strong>
+      ${
+        word.note
+          ? `
+            <span>备注</span>
+            <p>${escapeHtml(word.note)}</p>
+          `
+          : ""
+      }
+    </div>
+    <button class="primary-btn" onclick="continueAfterAnswer()">下一个</button>
+  `;
+}
+
+function renderTyping(word) {
+  return `
+    <div class="typing-area">
+      <input class="type-input" value="${escapeAttr(state.typed)}" placeholder="输入西班牙语" oninput="state.typed=this.value" />
+      <div class="keyboard">
+        ${SPECIAL_KEYS.map((key) => `<button class="key" onclick="insertSpecialKey('${key}')">${key}</button>`).join("")}
+      </div>
+      <div class="review-buttons">
+        <button class="ghost-btn" onclick="revealAnswer(false)">答案</button>
+        <button class="small-btn" onclick="submitTypedAnswer()">提交</button>
+      </div>
+      <button class="danger-btn" onclick="revealAnswer(false)">不会</button>
+    </div>
+  `;
+}
+
+function renderAdd() {
+  return `
+    ${renderHero()}
+    <div class="section-title"><span class="section-icon">🌱</span> 录入单词</div>
+    <section class="panel">
+      <div class="form-grid">
+        <div class="field">
+          <label>西班牙语</label>
+          <input value="${escapeAttr(state.form.es)}" placeholder="例如: buenos días" oninput="updateForm('es', this.value)" />
+        </div>
+        <div class="field">
+          <label>中文意思</label>
+          <input value="${escapeAttr(state.form.cn)}" placeholder="例如: 早上好" oninput="updateForm('cn', this.value)" />
+        </div>
+        <div class="field">
+          <label>备注 / 例句</label>
+          <textarea placeholder="可选：词性、例句、容易混淆点" oninput="updateForm('note', this.value)">${escapeHtml(state.form.note)}</textarea>
+        </div>
+        <div class="keyboard">
+          ${SPECIAL_KEYS.map((key) => `<button class="key" onclick="state.form.es += '${key}'; render()">${key}</button>`).join("")}
+        </div>
+        <div class="form-actions">
+          <button class="ghost-btn" onclick="resetForm(); render()">清空</button>
+          <button class="small-btn" onclick="submitWord()">${state.editingId ? "保存修改" : "种下单词"}</button>
+        </div>
+      </div>
+    </section>
+    <div class="section-title"><span class="section-icon">📥</span> 批量导入</div>
+    <section class="panel">
+      <div class="form-grid">
+        <div class="field">
+          <label>粘贴单词表</label>
+          <textarea class="bulk-area" placeholder="每行一个：&#10;hola, 你好&#10;buenos días - 早上好&#10;gracias｜谢谢｜常用表达" oninput="updateBulkImport(this.value)">${escapeHtml(state.bulkText)}</textarea>
+        </div>
+        <p class="import-hint">支持逗号、横线、竖线、Tab 分隔；第三列会当作备注。</p>
+        <div class="form-actions">
+          <label class="file-label">
+            选择 TXT/CSV
+            <input type="file" accept=".txt,.csv,text/plain,text/csv" onchange="importFromFile(this.files[0]); this.value=''" />
+          </label>
+          <button class="small-btn" onclick="submitBulkImport()">导入单词</button>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function renderBook() {
+  const cards = state.words
+    .map(
+      (word) => `
+        <article class="book-item">
+          <div class="book-main">
+            <strong>${escapeHtml(word.es)}</strong>
+            <span>${escapeHtml(word.cn)}</span>
+            ${word.note ? `<small>${escapeHtml(word.note)}</small>` : ""}
+          </div>
+          <div class="book-actions">
+            <button class="mini-btn" onclick="editWord('${word.id}')">改</button>
+            <button class="mini-danger" onclick="deleteWord('${word.id}')">删</button>
+          </div>
+        </article>
+      `
+    )
+    .join("");
+
+  return `
+    ${renderHero()}
+    <div class="section-title"><span class="section-icon">🛒</span> 单词册</div>
+    <div class="word-list">${cards || `<div class="panel empty">还没有单词，先去录入。</div>`}</div>
+  `;
+}
+
+function renderCheckin() {
+  const today = todayKey();
+  const checked = Boolean(state.checkins[today]);
+  const done = todaysDoneWords().length;
+  return `
+    ${renderHero()}
+    <div class="section-title"><span class="section-icon">🏅</span> 每日打卡</div>
+    <section class="post-card">
+      <div class="post-body">
+        <div class="post-title">
+          今天完成 ${done} 个单词，连续打卡 ${streakCount()} 天。
+          ${checked ? "今天已经盖章。" : "完成学习后就能盖章。"}
+        </div>
+        <div class="post-visual">${checked ? "✅" : "🌻"}</div>
+      </div>
+    </section>
+    <button class="primary-btn" style="width:100%; margin-bottom:18px" onclick="checkIn()">${checked ? "今日已打卡" : "完成打卡"}</button>
+    <div class="section-title"><span class="section-icon">🎖️</span> 荣誉殿堂</div>
+    <div class="achievements">
+      ${achievement("🎉", "第一颗单词", state.words.length >= 1)}
+      ${achievement("🔥", "三连击", done >= 3)}
+      ${achievement("⭐", "日达人", checked)}
+      ${achievement("💯", "小坚持", streakCount() >= 3)}
+    </div>
+  `;
+}
+
+function achievement(icon, title, unlocked) {
+  return `
+    <div class="achievement" style="${unlocked ? "" : "opacity:.45"}">
+      <div class="icon">${icon}</div>
+      <strong>${title}</strong>
+      <span>${unlocked ? "已点亮" : "继续努力"}</span>
+    </div>
+  `;
+}
+
+function renderTabbar() {
+  const tabs = [
+    ["learn", "📚", "背诵"],
+    ["add", "🌱", "录入"],
+    ["book", "🛒", "单词册"],
+    ["checkin", "🏆", "打卡"],
+  ];
+  return `
+    <nav class="tabbar">
+      ${tabs
+        .map(
+          ([id, icon, label]) => `
+          <button class="${state.activeTab === id ? "active" : ""}" onclick="switchTab('${id}')">
+            <span class="tab-icon">${icon}</span>
+            <span>${label}</span>
+          </button>
+        `
+        )
+        .join("")}
+    </nav>
+  `;
+}
+
+function renderPage() {
+  if (state.activeTab === "add") return renderAdd();
+  if (state.activeTab === "book") return renderBook();
+  if (state.activeTab === "checkin") return renderCheckin();
+  return renderLearn();
+}
+
+function render() {
+  const coins = state.words.length * 10 + todaysDoneWords().length * 5;
+  document.querySelector("#app").innerHTML = `
+    <main class="app-shell">
+      <header class="topbar">
+        <div class="brand"><span class="brand-icon">🍅</span><span>极简背单词</span></div>
+        <div class="score-row">
+          <span class="pill">🪙 ${coins}</span>
+          <span class="pill">🏆 ${streakCount()}</span>
+        </div>
+      </header>
+      ${renderPage()}
+      ${renderTabbar()}
+      ${state.toast ? `<div class="toast">${escapeHtml(state.toast)}</div>` : ""}
+    </main>
+  `;
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function escapeAttr(value) {
+  return escapeHtml(value).replaceAll("\n", " ");
+}
+
+render();
+
+    </script>
   </body>
 </html>
