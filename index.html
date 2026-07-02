@@ -1,250 +1,142 @@
-  const word = currentWord();
-  if (!word) return;
-  if (!state.typed.trim()) {
-    showToast("先输入答案");
-    return;
-  }
-  const ok = normalize(state.typed) === normalize(word.es);
-  revealAnswer(ok);
-}
-
-function revealAnswer(isCorrect) {
-  const word = currentWord();
-  if (!word) return;
-  state.pendingAnswer = { wordId: word.id, isCorrect };
-  state.showAnswer = true;
-  render();
-}
-
-function continueAfterAnswer() {
-  if (!state.pendingAnswer) return;
-  state.currentId = state.pendingAnswer.wordId;
-  const isCorrect = state.pendingAnswer.isCorrect;
-  state.pendingAnswer = null;
-  finishRound(isCorrect);
-}
-
-function finishRound(isCorrect) {
-  const word = currentWord();
-  if (!word) return;
-  const today = todayKey();
-  const nextCount = repsToday(word) + (isCorrect ? 1 : 0);
-  const completed = nextCount >= 3;
-  const nextStage = isCorrect && completed ? Math.min(word.stage + 1, REVIEW_STEPS.length - 1) : Math.max(word.stage - 1, 0);
-  const nextDue = completed ? addDays(today, REVIEW_STEPS[nextStage]) : today;
-
-  state.words = state.words.map((item) => {
-    if (item.id !== word.id) return item;
-    return {
-      ...item,
-      learnedToday: nextCount,
-      lastStudied: today,
-      stage: nextStage,
-      due: nextDue,
-      correctCount: item.correctCount + (isCorrect ? 1 : 0),
-      wrongCount: item.wrongCount + (isCorrect ? 0 : 1),
-    };
-  });
-
-  state.currentId = nextWordIdAfter(word.id);
-  state.showAnswer = false;
-  state.pendingAnswer = null;
-  state.typed = "";
-  saveState();
-
-  if (completed) {
-    showToast("这个单词今天完成 3 遍");
-  } else {
-    showToast(isCorrect ? "答对了，再来一遍" : "没关系，今天继续练");
-  }
-}
-
-function nextWordIdAfter(previousId) {
-  const plan = plannedWords();
-  const remainingIds = new Set(dueWords().map((word) => word.id));
-  if (!remainingIds.size) return "";
-
-  const start = Math.max(0, plan.findIndex((word) => word.id === previousId));
-  for (let offset = 1; offset <= plan.length; offset += 1) {
-    const candidate = plan[(start + offset) % plan.length];
-    if (candidate && remainingIds.has(candidate.id)) return candidate.id;
-  }
-
-  return dueWords()[0]?.id || "";
-}
-
-function checkIn() {
-  const today = todayKey();
-  if (!state.words.length) {
-    showToast("先录入单词再打卡");
-    return;
-  }
-  if (dueWords().length) {
-    showToast("先完成今天背诵再打卡");
-    return;
-  }
-  state.checkins[today] = true;
-  saveState();
-  showToast("今日打卡完成");
-}
-
-function streakCount() {
-  let count = 0;
-  let cursor = todayKey();
-  while (state.checkins[cursor]) {
-    count += 1;
-    cursor = addDays(cursor, -1);
-  }
-  return count;
-}
-
-function renderHero() {
-  const progress = todayProgress();
-  const due = dueWords().length;
-  const planned = plannedWords().length;
-  const done = todaysDoneWords().length;
-  const targets = [5, 10, 15, 20, 30, 50];
-  return `
-    <section class="hero-card compact-hero">
-      <div class="study-summary">
-        <div>
-          <span class="mini-label">今日任务</span>
-          <strong>${done}/${planned}</strong>
-          <small>剩余 ${due}</small>
-        </div>
-        <label class="target-control">
-          今天背
-          <select onchange="setDailyTarget(this.value)">
-            ${targets
-              .map((target) => `<option value="${target}" ${Number(state.dailyTarget) === target ? "selected" : ""}>${target}</option>`)
-              .join("")}
-          </select>
-        </label>
-      </div>
-      <div class="progress compact-progress"><span style="width:${progress}%"></span></div>
-      <div class="status-line compact-status">
-        <span>${due ? "READY" : "DONE"} · ${progress}%</span>
-        <div class="mode-switch" aria-label="背诵方向">
-          <button class="${state.direction === "es-cn" ? "active" : ""}" onclick="setDirection('es-cn')">西→中</button>
-          <button class="${state.direction === "cn-es" ? "active" : ""}" onclick="setDirection('cn-es')">中→西</button>
+          <button class="small-btn" onclick="submitWord()">${state.editingId ? "保存修改" : "种下单词"}</button>
         </div>
       </div>
     </section>
-  `;
-}
-
-function renderLearn() {
-  const word = currentWord();
-  if (state.pendingAnswer) {
-    const answerWord = state.words.find((item) => item.id === state.pendingAnswer.wordId) || word;
-    if (answerWord) {
-      return `
-        ${renderHero()}
-        <section class="panel learn-card">
-          ${renderAnswerReveal(answerWord, state.pendingAnswer.isCorrect)}
-        </section>
-      `;
-    }
-  }
-
-  if (!word) {
-    return `
-      ${renderHero()}
-      <div class="section-title"><span class="section-icon">🏆</span> 今日完成</div>
-      <section class="panel learn-card">
-        <div class="card-emoji">🎉</div>
-        <div class="prompt">今天的学习完成啦</div>
-        <p class="word-cn">可以去打卡，明天会按记忆曲线安排复习。</p>
-        <button class="primary-btn" onclick="switchTab('checkin')">去打卡</button>
-      </section>
-    `;
-  }
-
-  const prompt = state.direction === "es-cn" ? word.es : word.cn;
-  const answer = state.direction === "es-cn" ? word.cn : word.es;
-  const typing = state.direction === "cn-es";
-  return `
-    ${renderHero()}
-    <section class="panel learn-card">
-      <div class="card-emoji">${typing ? "✍️" : "🍅"}</div>
-      <div class="prompt">${escapeHtml(prompt)}</div>
-      <div class="word-meta" style="justify-content:center">
-        <span class="pill">今日 ${repsToday(word)}/3</span>
-        <span class="pill">阶段 ${word.stage + 1}</span>
-      </div>
-      ${
-        typing
-          ? renderTyping(word)
-          : `
-            ${state.showAnswer ? `<div class="answer">${escapeHtml(answer)}</div>` : ""}
-            <div class="review-buttons">
-              <button class="ghost-btn" onclick="revealAnswer(false)">看答案</button>
-              <button class="small-btn" onclick="revealAnswer(true)">我记得</button>
-            </div>
-            <button class="danger-btn" onclick="revealAnswer(false)">还不熟</button>
-          `
-      }
-    </section>
-  `;
-}
-
-function renderAnswerReveal(word, isCorrect) {
-  return `
-    <div class="answer-status ${isCorrect ? "ok" : "miss"}">${isCorrect ? "答对了" : "正确答案"}</div>
-    <div class="answer-card">
-      <span>西班牙语</span>
-      <strong>${escapeHtml(word.es)}</strong>
-      <span>中文</span>
-      <strong>${escapeHtml(word.cn)}</strong>
-      ${
-        word.note
-          ? `
-            <span>备注</span>
-            <p>${escapeHtml(word.note)}</p>
-          `
-          : ""
-      }
-    </div>
-    <button class="primary-btn" onclick="continueAfterAnswer()">下一个</button>
-  `;
-}
-
-function renderTyping(word) {
-  return `
-    <div class="typing-area">
-      <input class="type-input" value="${escapeAttr(state.typed)}" placeholder="输入西班牙语" oninput="state.typed=this.value" />
-      <div class="keyboard">
-        ${SPECIAL_KEYS.map((key) => `<button class="key" onclick="insertSpecialKey('${key}')">${key}</button>`).join("")}
-      </div>
-      <div class="review-buttons">
-        <button class="ghost-btn" onclick="revealAnswer(false)">答案</button>
-        <button class="small-btn" onclick="submitTypedAnswer()">提交</button>
-      </div>
-      <button class="danger-btn" onclick="revealAnswer(false)">不会</button>
-    </div>
-  `;
-}
-
-function renderAdd() {
-  return `
-    ${renderHero()}
-    <div class="section-title"><span class="section-icon">🌱</span> 录入单词</div>
+    <div class="section-title"><span class="section-icon">📥</span> 批量导入</div>
     <section class="panel">
       <div class="form-grid">
         <div class="field">
-          <label>西班牙语</label>
-          <input value="${escapeAttr(state.form.es)}" placeholder="例如: buenos días" oninput="updateForm('es', this.value)" />
+          <label>粘贴单词表</label>
+          <textarea class="bulk-area" placeholder="每行一个：&#10;hola, 你好&#10;buenos días - 早上好&#10;gracias｜谢谢｜常用表达" oninput="updateBulkImport(this.value)">${escapeHtml(state.bulkText)}</textarea>
         </div>
-        <div class="field">
-          <label>中文意思</label>
-          <input value="${escapeAttr(state.form.cn)}" placeholder="例如: 早上好" oninput="updateForm('cn', this.value)" />
-        </div>
-        <div class="field">
-          <label>备注 / 例句</label>
-          <textarea placeholder="可选：词性、例句、容易混淆点" oninput="updateForm('note', this.value)">${escapeHtml(state.form.note)}</textarea>
-        </div>
-        <div class="keyboard">
-          ${SPECIAL_KEYS.map((key) => `<button class="key" onclick="state.form.es += '${key}'; render()">${key}</button>`).join("")}
-        </div>
+        <p class="import-hint">支持逗号、横线、竖线、Tab 分隔；第三列会当作备注。</p>
         <div class="form-actions">
-          <button class="ghost-btn" onclick="resetForm(); render()">清空</button>
+          <label class="file-label">
+            选择 TXT/CSV
+            <input type="file" accept=".txt,.csv,text/plain,text/csv" onchange="importFromFile(this.files[0]); this.value=''" />
+          </label>
+          <button class="small-btn" onclick="submitBulkImport()">导入单词</button>
+        </div>
+      </div>
+    </section>
+  `;
+}
+function renderBook() {
+  const cards = state.words
+    .map(
+      (word) => `
+        <article class="book-item">
+          <div class="book-main">
+            <strong>${escapeHtml(word.es)}</strong>
+            <span>${escapeHtml(word.cn)}</span>
+            ${word.note ? `<small>${escapeHtml(word.note)}</small>` : ""}
+          </div>
+          <div class="book-actions">
+            <button class="mini-btn" onclick="editWord('${word.id}')">改</button>
+            <button class="mini-danger" onclick="deleteWord('${word.id}')">删</button>
+          </div>
+        </article>
+      `
+    )
+    .join("");
+  return `
+    ${renderHero()}
+    <div class="section-title"><span class="section-icon">🛒</span> 单词册</div>
+    <div class="word-list">${cards || `<div class="panel empty">还没有单词，先去录入。</div>`}</div>
+  `;
+}
+function renderCheckin() {
+  const today = todayKey();
+  const checked = Boolean(state.checkins[today]);
+  const done = todaysDoneWords().length;
+  return `
+    ${renderHero()}
+    <div class="section-title"><span class="section-icon">🏅</span> 每日打卡</div>
+    <section class="post-card">
+      <div class="post-body">
+        <div class="post-title">
+          今天完成 ${done} 个单词，连续打卡 ${streakCount()} 天。
+          ${checked ? "今天已经盖章。" : "完成学习后就能盖章。"}
+        </div>
+        <div class="post-visual">${checked ? "✅" : "🌻"}</div>
+      </div>
+    </section>
+    <button class="primary-btn" style="width:100%; margin-bottom:18px" onclick="checkIn()">${checked ? "今日已打卡" : "完成打卡"}</button>
+    <div class="section-title"><span class="section-icon">🎖️</span> 荣誉殿堂</div>
+    <div class="achievements">
+      ${achievement("🎉", "第一颗单词", state.words.length >= 1)}
+      ${achievement("🔥", "三连击", done >= 3)}
+      ${achievement("⭐", "日达人", checked)}
+      ${achievement("💯", "小坚持", streakCount() >= 3)}
+    </div>
+  `;
+}
+function achievement(icon, title, unlocked) {
+  return `
+    <div class="achievement" style="${unlocked ? "" : "opacity:.45"}">
+      <div class="icon">${icon}</div>
+      <strong>${title}</strong>
+      <span>${unlocked ? "已点亮" : "继续努力"}</span>
+    </div>
+  `;
+}
+function renderTabbar() {
+  const tabs = [
+    ["learn", "📚", "背诵"],
+    ["add", "🌱", "录入"],
+    ["book", "🛒", "单词册"],
+    ["checkin", "🏆", "打卡"],
+  ];
+  return `
+    <nav class="tabbar">
+      ${tabs
+        .map(
+          ([id, icon, label]) => `
+          <button class="${state.activeTab === id ? "active" : ""}" onclick="switchTab('${id}')">
+            <span class="tab-icon">${icon}</span>
+            <span>${label}</span>
+          </button>
+        `
+        )
+        .join("")}
+    </nav>
+  `;
+}
+function renderPage() {
+  if (state.activeTab === "add") return renderAdd();
+  if (state.activeTab === "book") return renderBook();
+  if (state.activeTab === "checkin") return renderCheckin();
+  return renderLearn();
+}
+function render() {
+  const coins = state.words.length * 10 + todaysDoneWords().length * 5;
+  document.querySelector("#app").innerHTML = `
+    <main class="app-shell">
+      <header class="topbar">
+        <div class="brand"><span class="brand-icon">🍅</span><span>极简背单词</span></div>
+        <div class="score-row">
+          <span class="pill">🪙 ${coins}</span>
+          <span class="pill">🏆 ${streakCount()}</span>
+        </div>
+      </header>
+      ${renderPage()}
+      ${renderTabbar()}
+      ${state.toast ? `<div class="toast">${escapeHtml(state.toast)}</div>` : ""}
+    </main>
+  `;
+}
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+function escapeAttr(value) {
+  return escapeHtml(value).replaceAll("\n", " ");
+}
+render();
+    </script>
+  </body>
+</html>
